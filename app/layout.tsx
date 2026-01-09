@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { CaseDevFooter } from "@/components/case-dev-footer";
+import { DemoBanner } from "@/components/demo/DemoBanner";
 import "./globals.css";
 
-const inter = Inter({ 
-  subsets: ["latin"], 
-  variable: "--font-sans" 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans"
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -14,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Create Legal App",
-  description: "The foundation is set. Now connect the dots.",
+  title: "Witness & Deposition Prep Demo | Case.dev",
+  description: "AI-powered witness testimony and deposition preparation tools. Practice cross-examination with intelligent feedback.",
 };
 
 export default function RootLayout({
@@ -34,6 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-white dark:bg-neutral-950">
+        <DemoBanner />
         <main className="flex-1 flex flex-col">{children}</main>
         <CaseDevFooter />
       </body>

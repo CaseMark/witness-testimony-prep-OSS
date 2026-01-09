@@ -19,6 +19,9 @@ const publicRoutes = [
   "/login",
   "/signup",
   "/api/auth", // Better Auth API routes
+  "/api/demo", // Demo config API (public for demo banner)
+  "/api/testimony", // Testimony API routes (demo app is public)
+  "/api/deposition", // Deposition API routes (demo app is public)
 ];
 
 /**
