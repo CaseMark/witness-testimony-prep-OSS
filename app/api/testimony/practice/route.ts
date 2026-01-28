@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatCompletion } from '@/lib/case-dev/api';
-import { DEMO_LIMITS } from '@/lib/demo-limits/config';
 
 const AI_EXAMINER_PROMPT = `You are an experienced opposing counsel conducting a cross-examination. Your role is to:
 
@@ -97,9 +96,9 @@ Analyze this response in the context of the case documents. Provide a follow-up 
 
       const content = response.choices?.[0]?.message?.content || '';
 
-      // Calculate cost based on character count
+      // Calculate characters processed (cost tracking disabled in OSS version)
       charsProcessed = (AI_EXAMINER_PROMPT + userPrompt + (content || '')).length;
-      cost = (charsProcessed / 1000) * DEMO_LIMITS.pricing.pricePerThousandChars;
+      cost = 0;
 
       if (content) {
         try {

@@ -40,14 +40,7 @@ import {
   setDepositionQuestions,
   setAnalysisResults,
 } from '@/lib/storage/deposition-storage';
-import {
-  getSessionStats,
-  incrementSessionPrice,
-  formatPrice,
-} from '@/lib/storage/usage-storage';
-import { DEMO_LIMITS } from '@/lib/demo-limits/config';
-import { UsageMeter } from '@/components/demo/UsageMeter';
-import { LimitWarning } from '@/components/demo/LimitWarning';
+import { formatPrice } from '@/lib/storage/usage-storage';
 
 type AppStep = 'setup' | 'documents' | 'analysis' | 'questions' | 'outline';
 
@@ -90,25 +83,16 @@ export default function DepositionPrepTool() {
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   const [isOrganizingOutline, setIsOrganizingOutline] = useState(false);
 
-  // Error and limit state
+  // Error state
   const [error, setError] = useState<string | null>(null);
-  const [limitReached, setLimitReached] = useState<'priceLimit' | 'documentLimit' | null>(null);
-
-  // Usage tracking
-  const [priceUsed, setPriceUsed] = useState(0);
-  const [documentsUsed, setDocumentsUsed] = useState(0);
 
   // UI state
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
 
-  // Load session and stats on mount
+  // Load session on mount
   useEffect(() => {
-    const stats = getSessionStats();
-    setPriceUsed(stats.sessionPrice);
-    setDocumentsUsed(stats.documentsUploaded);
-
     const savedSessionId = typeof window !== 'undefined'
       ? localStorage.getItem('wtp_current_deposition_session')
       : null;
@@ -168,12 +152,6 @@ export default function DepositionPrepTool() {
     setCaseName('');
     setCaseNumber('');
     setError(null);
-    setLimitReached(null);
-    // Don't reset priceUsed/documentsUsed - they persist across deposition sessions
-    // Reload from session stats instead
-    const stats = getSessionStats();
-    setPriceUsed(stats.sessionPrice);
-    setDocumentsUsed(stats.documentsUploaded);
     setExpandedQuestions(new Set());
     setSelectedTopic(null);
     setSelectedPriority(null);
@@ -186,29 +164,10 @@ export default function DepositionPrepTool() {
   const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files || !session) return;
 
-    // Check document limit
-    if (session.documents.length >= DEMO_LIMITS.documents.maxDocumentsPerSession) {
-      setLimitReached('documentLimit');
-      showError(`Demo limit: Maximum ${DEMO_LIMITS.documents.maxDocumentsPerSession} documents per session`);
-      return;
-    }
-
     setIsUploadingDocument(true);
     setError(null);
 
     for (const file of Array.from(files)) {
-      // Check document limit again for each file
-      if (session.documents.length >= DEMO_LIMITS.documents.maxDocumentsPerSession) {
-        showError(`Demo limit reached: Maximum ${DEMO_LIMITS.documents.maxDocumentsPerSession} documents`);
-        break;
-      }
-
-      // Check file size
-      if (file.size > DEMO_LIMITS.documents.maxFileSize) {
-        showError(`File "${file.name}" exceeds ${DEMO_LIMITS.documents.maxFileSize / (1024 * 1024)}MB limit`);
-        continue;
-      }
-
       try {
         // Read file content
         const content = await new Promise<string>((resolve, reject) => {
@@ -238,7 +197,6 @@ export default function DepositionPrepTool() {
 
         const updated = addDepositionDocument(session.id, newDoc);
         if (updated) {
-          setDocumentsUsed(prev => prev + 1);
           setSession(updated);
         }
       } catch (err) {
@@ -275,18 +233,8 @@ export default function DepositionPrepTool() {
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.limitReached) {
-          setLimitReached('priceLimit');
-          return;
-        }
         showError(data.error || 'Failed to generate questions');
         return;
-      }
-
-      // Track cost
-      if (data.cost) {
-        incrementSessionPrice(data.cost);
-        setPriceUsed((prev) => prev + data.cost);
       }
 
       // Update session with questions and analysis from API
@@ -734,15 +682,6 @@ export default function DepositionPrepTool() {
   const renderDocuments = () => {
     if (isGeneratingQuestions) return renderGeneratingQuestions();
 
-    // Show limit warning if reached
-    if (limitReached) {
-      return (
-        <div className="max-w-4xl mx-auto">
-          <LimitWarning type={limitReached} onUpgrade={() => window.open('https://case.dev', '_blank')} />
-        </div>
-      );
-    }
-
     return (
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
@@ -760,21 +699,6 @@ export default function DepositionPrepTool() {
             <Lightning className="w-5 h-5" weight="fill" />
             Generate Questions
           </button>
-        </div>
-
-        {/* Usage meters */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <UsageMeter
-            label="Session Cost"
-            used={priceUsed}
-            limit={DEMO_LIMITS.pricing.sessionPriceLimit}
-            isPriceFormat
-          />
-          <UsageMeter
-            label="Documents"
-            used={session?.documents.length || 0}
-            limit={DEMO_LIMITS.documents.maxDocumentsPerSession}
-          />
         </div>
 
         {/* Upload area */}
@@ -887,23 +811,8 @@ export default function DepositionPrepTool() {
 
   // Render analysis step
   const renderAnalysis = () => {
-    // Show limit warning if reached
-    if (limitReached) {
-      return (
-        <div className="max-w-6xl mx-auto">
-          <LimitWarning type={limitReached} onUpgrade={() => window.open('https://case.dev', '_blank')} />
-        </div>
-      );
-    }
-
     return (
     <div className="max-w-6xl mx-auto">
-      {/* Usage meters */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <UsageMeter label="Session Cost" used={priceUsed} limit={DEMO_LIMITS.pricing.sessionPriceLimit} isPriceFormat />
-        <UsageMeter label="Documents" used={session?.documents.length || 0} limit={DEMO_LIMITS.documents.maxDocumentsPerSession} />
-      </div>
-
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Analysis Results</h1>
@@ -1049,12 +958,6 @@ export default function DepositionPrepTool() {
   // Render questions step
   const renderQuestions = () => (
     <div className="max-w-6xl mx-auto">
-      {/* Usage meters */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <UsageMeter label="Session Cost" used={priceUsed} limit={DEMO_LIMITS.pricing.sessionPriceLimit} isPriceFormat />
-        <UsageMeter label="Documents" used={session?.documents.length || 0} limit={DEMO_LIMITS.documents.maxDocumentsPerSession} />
-      </div>
-
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Deposition Questions</h1>

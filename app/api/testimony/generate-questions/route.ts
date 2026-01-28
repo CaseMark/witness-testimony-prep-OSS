@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { chatCompletion, estimateTokens } from '@/lib/case-dev/api';
-import { DEMO_LIMITS } from '@/lib/demo-limits/config';
 import type { CrossExamQuestion } from '@/lib/types/testimony';
 
 // Dynamic system prompt that includes the actual witness name
@@ -415,9 +414,9 @@ Return ONLY a valid JSON array. No markdown formatting.`;
 
       const content = response.choices?.[0]?.message?.content || '';
 
-      // Calculate cost based on character count
+      // Calculate characters processed (cost tracking disabled in OSS version)
       charsProcessed = (systemPrompt + userPrompt + (content || '')).length;
-      cost = (charsProcessed / 1000) * DEMO_LIMITS.pricing.pricePerThousandChars;
+      cost = 0;
 
       if (content) {
         const questionsData = parseJSONResponse(content);

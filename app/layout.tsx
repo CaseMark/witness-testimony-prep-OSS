@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { CaseDevFooter } from "@/components/case-dev-footer";
-import { DemoBanner } from "@/components/demo/DemoBanner";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Deposition Prep Tools Demo | Case.dev",
+  title: "Deposition Prep Tools | Case.dev",
   description: "AI-powered witness testimony and deposition preparation tools. Practice cross-examination with intelligent feedback.",
 };
 
@@ -35,7 +34,6 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-white dark:bg-neutral-950">
-        <DemoBanner />
         <main className="flex-1 flex flex-col">{children}</main>
         <CaseDevFooter />
       </body>

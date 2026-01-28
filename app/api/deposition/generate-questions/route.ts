@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { chatCompletion } from '@/lib/case-dev/api';
-import { DEMO_LIMITS } from '@/lib/demo-limits/config';
 import type { DepositionQuestion, TestimonyGap, Contradiction } from '@/lib/types/deposition';
 
 // Dynamic system prompt
@@ -318,9 +317,9 @@ CRITICAL: Return ONLY a valid JSON object. No markdown formatting, no code block
 
       const content = response.choices?.[0]?.message?.content || '';
 
-      // Calculate cost
+      // Calculate characters processed (cost tracking disabled in OSS version)
       charsProcessed = (getDepositionAnalysisPrompt(deponentName) + userPrompt + content).length;
-      cost = (charsProcessed / 1000) * DEMO_LIMITS.pricing.pricePerThousandChars;
+      cost = 0;
 
       if (content) {
         try {

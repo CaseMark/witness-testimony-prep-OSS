@@ -23,9 +23,6 @@ import {
 } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { UsageMeter } from '@/components/demo/UsageMeter';
-import { LimitWarning } from '@/components/demo/LimitWarning';
-import { DEMO_LIMITS } from '@/lib/demo-limits/config';
 import {
   createSession,
   getSession,
@@ -35,11 +32,7 @@ import {
   addPracticeExchange,
   deleteSession,
 } from '@/lib/storage/session-storage';
-import {
-  getSessionStats,
-  incrementSessionPrice,
-  formatPrice,
-} from '@/lib/storage/usage-storage';
+import { formatPrice } from '@/lib/storage/usage-storage';
 import type {
   PracticeSession,
   Document,
@@ -65,13 +58,8 @@ export default function TestimonyPrepTool() {
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
 
-  // Error and limit state
+  // Error state
   const [error, setError] = useState<string | null>(null);
-  const [limitReached, setLimitReached] = useState<'priceLimit' | 'documentLimit' | null>(null);
-
-  // Usage tracking
-  const [priceUsed, setPriceUsed] = useState(0);
-  const [documentsUsed, setDocumentsUsed] = useState(0);
 
   // Practice state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -84,13 +72,6 @@ export default function TestimonyPrepTool() {
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-
-  // Load session stats on mount
-  useEffect(() => {
-    const stats = getSessionStats();
-    setPriceUsed(stats.sessionPrice);
-    setDocumentsUsed(stats.documentsUploaded);
-  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -129,12 +110,6 @@ export default function TestimonyPrepTool() {
     setLastAIResponse(null);
     setShowFeedback(false);
     setError(null);
-    setLimitReached(null);
-    // Don't reset priceUsed/documentsUsed - they persist across testimony sessions
-    // Reload from session stats instead
-    const stats = getSessionStats();
-    setPriceUsed(stats.sessionPrice);
-    setDocumentsUsed(stats.documentsUploaded);
   }, [session]);
 
   // Create session
@@ -161,22 +136,10 @@ export default function TestimonyPrepTool() {
     async (files: FileList | null) => {
       if (!files || !session) return;
 
-      // Check document limit
-      if (session.documents.length >= DEMO_LIMITS.documents.maxDocumentsPerSession) {
-        setLimitReached('documentLimit');
-        return;
-      }
-
       setIsUploadingDocument(true);
       setError(null);
 
       for (const file of Array.from(files)) {
-        // Check file size
-        if (file.size > DEMO_LIMITS.documents.maxFileSize) {
-          showError(`File "${file.name}" exceeds ${DEMO_LIMITS.documents.maxFileSize / (1024 * 1024)}MB limit`);
-          continue;
-        }
-
         const docId = uuidv4();
         const doc: Document = {
           id: docId,
@@ -215,12 +178,6 @@ export default function TestimonyPrepTool() {
 
           if (!response.ok) {
             throw new Error(data.error || 'Failed to process document');
-          }
-
-          // Track cost
-          if (data.cost) {
-            incrementSessionPrice(data.cost);
-            setPriceUsed((prev) => prev + data.cost);
           }
 
           // Update document with content
@@ -278,16 +235,7 @@ export default function TestimonyPrepTool() {
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.limitReached) {
-          setLimitReached('priceLimit');
-          return;
-        }
         throw new Error(data.error || 'Failed to generate questions');
-      }
-
-      if (data.cost) {
-        incrementSessionPrice(data.cost);
-        setPriceUsed((prev) => prev + data.cost);
       }
 
       if (data.questions && data.questions.length > 0) {
@@ -357,16 +305,7 @@ export default function TestimonyPrepTool() {
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.limitReached) {
-          setLimitReached('priceLimit');
-          return;
-        }
         throw new Error(data.error || 'Failed to analyze response');
-      }
-
-      if (data.cost) {
-        incrementSessionPrice(data.cost);
-        setPriceUsed((prev) => prev + data.cost);
       }
 
       // Add practice exchange to session
@@ -536,21 +475,6 @@ export default function TestimonyPrepTool() {
           <p className="text-sm text-muted-foreground">Practice with AI</p>
         </div>
       </div>
-
-      {/* Usage info */}
-      <div className="mt-6 space-y-3">
-        <UsageMeter
-          label="Session Cost"
-          used={priceUsed}
-          limit={DEMO_LIMITS.pricing.sessionPriceLimit}
-          isPriceFormat
-        />
-        <UsageMeter
-          label="Documents"
-          used={documentsUsed}
-          limit={DEMO_LIMITS.documents.maxDocumentsPerSession}
-        />
-      </div>
     </div>
   );
 
@@ -619,17 +543,6 @@ export default function TestimonyPrepTool() {
   const renderDocuments = () => {
     if (isGeneratingQuestions) {
       return renderGeneratingQuestions();
-    }
-
-    if (limitReached) {
-      return (
-        <div className="mx-auto max-w-2xl">
-          <LimitWarning type={limitReached} onUpgrade={() => window.open('https://case.dev', '_blank')} />
-          <Button onClick={() => setLimitReached(null)} variant="outline" className="mt-4">
-            Go Back
-          </Button>
-        </div>
-      );
     }
 
     return (
@@ -717,21 +630,6 @@ export default function TestimonyPrepTool() {
             </div>
           </div>
         )}
-
-        {/* Usage meters */}
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <UsageMeter
-            label="Documents This Session"
-            used={session?.documents.length || 0}
-            limit={DEMO_LIMITS.documents.maxDocumentsPerSession}
-          />
-          <UsageMeter
-            label="Session Cost"
-            used={priceUsed}
-            limit={DEMO_LIMITS.pricing.sessionPriceLimit}
-            isPriceFormat
-          />
-        </div>
 
         {/* Tips */}
         <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-4">
@@ -827,17 +725,6 @@ export default function TestimonyPrepTool() {
   const renderPractice = () => {
     const currentQuestion = session?.questions[currentQuestionIndex];
     const progress = session ? ((currentQuestionIndex + 1) / session.questions.length) * 100 : 0;
-
-    if (limitReached) {
-      return (
-        <div className="mx-auto max-w-2xl">
-          <LimitWarning type={limitReached} onUpgrade={() => window.open('https://case.dev', '_blank')} />
-          <Button onClick={() => setLimitReached(null)} variant="outline" className="mt-4">
-            Go Back
-          </Button>
-        </div>
-      );
-    }
 
     return (
       <div className="mx-auto max-w-4xl animate-in fade-in">
@@ -1009,16 +896,6 @@ export default function TestimonyPrepTool() {
             </div>
           </div>
         )}
-
-        {/* Usage meter */}
-        <div className="mt-6">
-          <UsageMeter
-            label="Session Cost"
-            used={priceUsed}
-            limit={DEMO_LIMITS.pricing.sessionPriceLimit}
-            isPriceFormat
-          />
-        </div>
       </div>
     );
   };
