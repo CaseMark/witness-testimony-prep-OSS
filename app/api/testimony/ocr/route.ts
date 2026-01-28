@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_LIMITS } from '@/lib/demo-limits/config';
-import { calculateCost } from '@/lib/storage/usage-storage';
 
 // POST /api/testimony/ocr - Process a document (client-side extraction, server validates)
 // Note: This endpoint name is historical - it no longer uses OCR
@@ -17,15 +15,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate cost based on text length
-    const cost = calculateCost(text.length);
-
     return NextResponse.json({
       text,
       pageCount: pageCount || 1,
       status: 'completed',
       fileName,
-      cost,
+      cost: 0,
       charsProcessed: text.length,
     });
   } catch (error) {
