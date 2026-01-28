@@ -1,21 +1,47 @@
 "use client";
 
-import { useState } from "react";
-import { Scales, Gavel, ArrowRight, Lightning } from "@phosphor-icons/react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Scales, Gavel, ArrowRight, SignOut } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import TestimonyPrepTool from "@/components/testimony/TestimonyPrepTool";
 import { DepositionPrepTool } from "@/components/deposition";
+import { isAuthenticated, clearApiKey } from "@/lib/storage/api-key-storage";
 
 type Tool = "none" | "testimony" | "deposition";
 
 export default function Page() {
+  const router = useRouter();
   const [selectedTool, setSelectedTool] = useState<Tool>("none");
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+    } else {
+      setIsAuthChecking(false);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    clearApiKey();
+    router.push("/login");
+  };
+
+  if (isAuthChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   // Show selected tool
   if (selectedTool === "testimony") {
     return (
       <div className="flex-1 bg-background">
-        <div className="border-b border-border bg-card px-6 py-4">
+        <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
           <Button
             onClick={() => setSelectedTool("none")}
             variant="outline"
@@ -24,6 +50,15 @@ export default function Page() {
           >
             <ArrowRight className="size-5 rotate-180" />
             Back to tools
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+          >
+            <SignOut className="size-4 mr-2" />
+            Logout
           </Button>
         </div>
         <TestimonyPrepTool />
@@ -34,7 +69,7 @@ export default function Page() {
   if (selectedTool === "deposition") {
     return (
       <div className="flex-1 bg-background">
-        <div className="border-b border-border bg-card px-6 py-4">
+        <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
           <Button
             onClick={() => setSelectedTool("none")}
             variant="outline"
@@ -43,6 +78,15 @@ export default function Page() {
           >
             <ArrowRight className="size-5 rotate-180" />
             Back to tools
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+          >
+            <SignOut className="size-4 mr-2" />
+            Logout
           </Button>
         </div>
         <DepositionPrepTool />
@@ -54,13 +98,22 @@ export default function Page() {
   return (
     <main className="flex-1 flex flex-col items-center justify-center bg-background px-6 py-12">
         <div className="max-w-4xl w-full">
+          {/* Logout button */}
+          <div className="flex justify-end mb-4">
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+            >
+              <SignOut className="size-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-sm font-medium dark:bg-amber-900/30 dark:text-amber-200">
-                <Lightning weight="fill" className="size-4" />
-                Demo Preview
-              </div>
               <a
                 href="https://case.dev"
                 target="_blank"
@@ -175,16 +228,16 @@ export default function Page() {
           {/* Footer info */}
           <div className="mt-12 text-center">
             <p className="text-sm text-muted-foreground">
-              This is a demo with usage limits.{" "}
+              Open-source deposition preparation tools powered by{" "}
               <a
                 href="https://case.dev"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                Contact Case.dev
-              </a>{" "}
-              for unlimited access and custom integrations.
+                Case.dev
+              </a>
+              . All documents are securely stored in your private vault.
             </p>
           </div>
         </div>
