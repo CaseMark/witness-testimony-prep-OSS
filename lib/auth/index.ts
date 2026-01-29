@@ -89,10 +89,8 @@ export const auth = betterAuth({
        */
       async sendInvitationEmail(data) {
         const inviteLink = `${process.env.BETTER_AUTH_URL}/accept-invite/${data.id}`;
-        // TODO: Replace with actual email sending
-        console.log(
-          `[Auth] Invite ${data.email} to ${data.organization.name}: ${inviteLink}`
-        );
+        // TODO: Implement email sending via Case.dev Email API
+        void inviteLink; // Placeholder - email not implemented
       },
     }),
 
@@ -108,8 +106,9 @@ export const auth = betterAuth({
        */
       otpOptions: {
         async sendOTP({ user, otp }) {
-          // TODO: Replace with actual email/SMS sending
-          console.log(`[Auth] 2FA code for ${user.email}: ${otp}`);
+          // TODO: Implement OTP sending via Case.dev Email API
+          void user;
+          void otp; // Placeholder - OTP sending not implemented
         },
       },
     }),

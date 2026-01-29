@@ -1,173 +1,129 @@
-# Deposition Prep Tools Demo
+# Witness Testimony Prep Tools
 
-**AI-powered witness testimony and deposition preparation tools.**
+AI-powered tools for witness testimony preparation and deposition planning.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Next.js](https://img.shields.io/badge/Next.js-16.1-black)](https://nextjs.org)
-[![Case.dev](https://img.shields.io/badge/Case.dev-Powered-blue)](https://case.dev)
-
-> Built on the [Create Legal App](https://github.com/CaseMark/create-legal-app) starter kit.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![Case.dev](https://img.shields.io/badge/Powered%20by-Case.dev-orange)](https://case.dev)
 
 ## Overview
 
-This demo application showcases AI-powered legal preparation tools:
+This application provides two AI-powered legal preparation tools:
 
-- **Testimony Prep Tool**: Prepare witnesses for cross-examination with AI-generated questions based on case documents. Practice with an AI examiner that provides real-time feedback.
+- **Testimony Prep Tool**: Prepare witnesses for cross-examination with AI-generated questions. Upload case documents, generate challenging questions, and practice with an AI examiner that provides real-time feedback.
 
-- **Deposition Prep Tool** (Coming Soon): Strategic deposition planning with document analysis, gap identification, and question outline generation.
+- **Deposition Prep Tool**: Strategic deposition planning with document analysis, testimony gap identification, contradiction detection, and question outline generation.
 
-## Features
+## Case.dev Integration
 
-### Testimony Prep Tool
+This application uses the [Case.dev API](https://case.dev) for AI capabilities:
 
-1. **Document Upload**: Upload case documents (PDF, DOCX, TXT) for analysis
-2. **AI Question Generation**: Generate 20 challenging cross-examination questions based on document content
-3. **Interactive Practice Mode**: Practice answering questions with an AI examiner
-4. **Real-time Feedback**: Get instant feedback on responses with suggested improvements
-5. **Session Review**: Review your practice history and performance
+| API | Usage |
+|-----|-------|
+| **LLM API** | Generates cross-examination questions, analyzes witness responses, provides feedback |
+| **OCR API** | Extracts text from uploaded PDF documents |
 
-### Demo Limits
-
-This demo version includes the following usage limits:
-
-| Limit Type | Value |
-|------------|-------|
-| Session duration | 24 hours |
-| Price per session | $5.00 |
-| Max documents per session | 20 |
-| Max file size | 10 MB |
-
-**Pricing**: $0.0005 per 1,000 characters processed (~$0.50 per million characters)
-
-**Disabled Features:**
-- Bulk upload
-- Advanced export
-- Premium features
-
-## Tech Stack
-
-- **Framework**: [Next.js 16](https://nextjs.org) (App Router)
-- **Language**: TypeScript
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com) + [Shadcn UI](https://ui.shadcn.com) (Maia Theme)
-- **Icons**: [Phosphor Icons](https://phosphoricons.com)
-- **Storage**: localStorage (client-side, no database required)
-- **AI**: [Case.dev API](https://case.dev) (LLM + OCR)
+All document storage is handled client-side via localStorage—no server-side database required.
 
 ## Getting Started
 
-### 1. Clone and Install
+### Prerequisites
+
+- Node.js 18+ or Bun
+- A [Case.dev](https://case.dev) API key
+
+### Installation
 
 ```bash
-git clone <repository-url>
-cd witness-testimony-prep-demo
+git clone https://github.com/CaseMark/witness-testimony-prep-OSS.git
+cd witness-testimony-prep-OSS
 npm install
-# or
-bun install
 ```
 
-### 2. Configure Environment
-
-Copy the example environment file:
+### Configuration
 
 ```bash
 cp .env.example .env.local
 ```
 
-Add your Case.dev API key:
+Add your Case.dev API key to `.env.local`:
 
 ```env
-# .env.local
-CASE_API_KEY=your-api-key-here
+CASE_API_KEY=sk_case_your_key_here
 ```
 
-Get your API key from [Case.dev](https://case.dev).
-
-### 3. Run Development Server
+### Run
 
 ```bash
 npm run dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+Open [http://localhost:3000](http://localhost:3000) and enter your API key to authenticate.
+
+## How It Works
+
+### Testimony Prep Tool
+
+1. **Upload Documents**: Upload case documents (PDF, DOCX, TXT) containing depositions, witness statements, or exhibits
+2. **Generate Questions**: AI analyzes documents and generates 20 cross-examination questions categorized by type (timeline, credibility, inconsistency, etc.)
+3. **Practice Mode**: Answer questions while an AI examiner evaluates responses and suggests follow-up questions
+4. **Review**: See your practice history and feedback
+
+### Deposition Prep Tool
+
+1. **Upload Documents**: Upload prior testimony, case files, and exhibits
+2. **Analysis**: AI identifies testimony gaps, contradictions, and key themes
+3. **Question Generation**: Get strategic deposition questions organized by topic and priority
+4. **Outline**: Export a structured deposition outline
 
 ## Project Structure
 
 ```
 ├── app/
 │   ├── api/
-│   │   ├── testimony/          # Testimony prep API routes
+│   │   ├── testimony/           # Testimony prep endpoints
 │   │   │   ├── generate-questions/
 │   │   │   ├── practice/
 │   │   │   └── ocr/
-│   │   └── deposition/         # Deposition prep API routes
-│   ├── layout.tsx              # Root layout with DemoBanner
-│   └── page.tsx                # Tool selector page
+│   │   ├── deposition/          # Deposition prep endpoints
+│   │   ├── login/               # Authentication
+│   │   └── verify-key/          # API key validation
+│   ├── login/                   # Login page
+│   └── page.tsx                 # Main tool selector
 ├── components/
-│   ├── demo/                   # Demo-specific UI components
-│   │   ├── DemoBanner.tsx
-│   │   ├── UsageMeter.tsx
-│   │   ├── LimitWarning.tsx
-│   │   └── UpgradeCTA.tsx
-│   ├── testimony/              # Testimony prep components
-│   │   └── TestimonyPrepTool.tsx
-│   └── ui/                     # Shadcn UI components
+│   ├── testimony/               # Testimony prep UI
+│   ├── deposition/              # Deposition prep UI
+│   └── ui/                      # Shared UI components
 ├── lib/
-│   ├── case-dev/               # Case.dev API client
-│   │   └── api.ts
-│   ├── demo-limits/            # Demo limit configuration
-│   │   ├── config.ts
-│   │   ├── token-limit-service.ts
-│   │   ├── ocr-limit-service.ts
-│   │   └── feature-gate.ts
-│   ├── storage/                # localStorage services
-│   │   ├── session-storage.ts
-│   │   ├── deposition-storage.ts
-│   │   └── usage-storage.ts
-│   └── types/                  # TypeScript types
-│       ├── testimony.ts
-│       ├── deposition.ts
-│       └── demo-limits.ts
-└── skills/                     # AI agent documentation
+│   ├── case-dev/                # Case.dev API client
+│   ├── storage/                 # localStorage utilities
+│   └── types/                   # TypeScript definitions
 ```
-
-## Key Differences from Production
-
-This demo version differs from the full production app in several ways:
-
-1. **Storage**: Uses localStorage instead of Case.dev Vaults
-2. **Authentication**: Anonymous sessions (no user accounts required)
-3. **Rate Limits**: Enforced demo limits on tokens and OCR usage
-4. **Features**: Some advanced features are disabled
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `CASEDEV_API_KEY` | Yes | Case.dev API key for LLM and OCR |
-| `DEMO_TOKENS_PER_REQUEST` | No | Override default token limit per request |
-| `DEMO_TOKENS_PER_SESSION` | No | Override default session token limit |
-| `DEMO_TOKENS_PER_DAY` | No | Override default daily token limit |
-
-See [.env.example](.env.example) for all available options.
 
 ## API Routes
 
-### Testimony Prep
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/testimony/generate-questions` | POST | Generate cross-examination questions |
+| `/api/testimony/practice` | POST | Submit answer and get AI feedback |
+| `/api/testimony/ocr` | POST | Process document text |
+| `/api/deposition/generate-questions` | POST | Generate deposition questions and analysis |
+| `/api/verify-key` | POST | Validate Case.dev API key |
 
-- `POST /api/testimony/generate-questions` - Generate cross-examination questions
-- `POST /api/testimony/practice` - Submit practice response and get AI feedback
-- `POST /api/testimony/ocr` - Process document with OCR
+## Tech Stack
 
-### Deposition Prep
-
-- `POST /api/deposition/generate-questions` - Generate deposition questions
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4 + shadcn/ui
+- **Icons**: Phosphor Icons
+- **AI**: Case.dev API (LLM + OCR)
+- **Storage**: Client-side localStorage
 
 ## License
 
-This project is licensed under the [Apache 2.0 License](LICENSE).
+[Apache 2.0](LICENSE)
 
-## Contact
+## Links
 
-For unlimited access and custom integrations, contact [Case.dev](https://case.dev).
+- [Case.dev](https://case.dev) - AI infrastructure for legal applications
+- [Case.dev Documentation](https://docs.case.dev) - API documentation

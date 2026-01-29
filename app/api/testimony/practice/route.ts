@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build context with document content (limited for demo)
+    // Build context with document content
     const documentContext = (documents || [])
       .map((doc: { name: string; content?: string }) => {
-        // Truncate content to fit within demo limits
+        // Truncate content for context window efficiency
         const content = doc.content
           ? doc.content.slice(0, 2000) + (doc.content.length > 2000 ? '... [truncated]' : '')
           : '[Content not available]';

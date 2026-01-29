@@ -1,5 +1,5 @@
-// Case.dev API client for Testimony Prep Demo
-// Includes LLM and OCR APIs with demo limit integration
+// Case.dev API client
+// Provides LLM and OCR API integrations
 
 const CASE_API_BASE = 'https://api.case.dev';
 
@@ -218,35 +218,31 @@ export async function getOCRStatus(jobId: string): Promise<OCRResult> {
 }
 
 // ============================================================================
-// Vault API - Document Storage (Disabled in demo, kept for reference)
+// Vault API - Document Storage (not used - documents stored in localStorage)
 // ============================================================================
 
-// Note: Vault API is disabled in the demo version.
-// Documents are stored in localStorage instead.
-// These functions are kept for reference but will throw if called.
-
 export async function createVault(_name: string, _description?: string): Promise<never> {
-  throw new Error('Vault API is disabled in demo mode. Documents are stored locally.');
+  throw new Error('Vault API not implemented. Documents are stored in localStorage.');
 }
 
 export async function getUploadUrl(_vaultId: string, _filename: string, _contentType: string): Promise<never> {
-  throw new Error('Vault API is disabled in demo mode. Documents are stored locally.');
+  throw new Error('Vault API not implemented. Documents are stored in localStorage.');
 }
 
 export async function searchVault(_vaultId: string, _query: string): Promise<never> {
-  throw new Error('Vault API is disabled in demo mode. Use local search instead.');
+  throw new Error('Vault API not implemented. Use local search instead.');
 }
 
 // ============================================================================
-// Voice API - Transcription (Disabled in demo)
+// Voice API - Transcription (not used)
 // ============================================================================
 
 export async function createTranscription(_audioUrl: string): Promise<never> {
-  throw new Error('Voice transcription is disabled in demo mode.');
+  throw new Error('Voice transcription not implemented.');
 }
 
 export async function getTranscriptionStatus(_transcriptionId: string): Promise<never> {
-  throw new Error('Voice transcription is disabled in demo mode.');
+  throw new Error('Voice transcription not implemented.');
 }
 
 // ============================================================================

@@ -89,11 +89,8 @@ async function extractTextFromPDF(file: File): Promise<ExtractionResult> {
 
     // If we got very little text, the PDF might be scanned/image-based
     if (fullText.trim().length < 50 && pageCount > 0) {
-      console.log('[DocProcessor] PDF appears to be scanned or image-based');
       throw new Error('This PDF appears to be a scanned document or image-based. Please upload a PDF with selectable text, or use a text file (.txt, .docx).');
     }
-
-    console.log(`[DocProcessor] Extracted ${fullText.length} chars from ${pageCount} pages`);
 
     return {
       text: fullText,
@@ -101,7 +98,6 @@ async function extractTextFromPDF(file: File): Promise<ExtractionResult> {
       method: 'pdf-text',
     };
   } catch (error) {
-    console.error('[DocProcessor] PDF extraction error:', error);
     if (error instanceof Error && error.message.includes('scanned document')) {
       throw error;
     }
@@ -128,8 +124,6 @@ async function extractTextFromPlainText(file: File): Promise<ExtractionResult> {
 export async function processDocument(file: File): Promise<ExtractionResult> {
   const mimeType = file.type;
   const fileName = file.name.toLowerCase();
-
-  console.log(`[DocProcessor] Processing ${file.name} (${mimeType})`);
 
   if (mimeType === 'text/plain' || fileName.endsWith('.txt')) {
     return extractTextFromPlainText(file);
